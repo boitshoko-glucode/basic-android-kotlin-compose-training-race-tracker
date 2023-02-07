@@ -68,6 +68,16 @@ fun RaceTrackerApp() {
     }
     var raceInProgress by remember { mutableStateOf(false) }
 
+    if (raceInProgress) {
+        LaunchedEffect(playerOne, playerTwo) {
+            coroutineScope {
+                launch { playerOne.run() }
+                launch { playerTwo.run() }
+            }
+            raceInProgress = false
+        }
+    }
+
     RaceTrackerScreen(
         playerOne = playerOne,
         playerTwo = playerTwo,
@@ -84,6 +94,7 @@ private fun RaceTrackerScreen(
     onRunStateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -127,7 +138,17 @@ private fun RaceTrackerScreen(
             )
             RaceControls(
                 isRunning = isRunning,
-                onRunStateChange = onRunStateChange,
+                onRunStateChange = {
+                    if (!isRunning
+                        && (playerOne.currentProgress == playerOne.maxProgress
+                                && playerTwo.currentProgress == playerTwo.maxProgress)
+                    ) {
+                        playerTwo.reset()
+                        playerOne.reset()
+                    }
+
+                    onRunStateChange(it)
+                },
                 onReset = {
                     playerOne.reset()
                     playerTwo.reset()

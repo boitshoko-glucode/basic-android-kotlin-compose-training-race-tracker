@@ -16,9 +16,11 @@
 
 package com.example.racetracker.ui
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
 /**
@@ -27,7 +29,7 @@ import kotlinx.coroutines.delay
 class RaceParticipant(
     val name: String,
     val maxProgress: Int = 100,
-    val progressDelayMillis: Long = 500L,
+    var progressDelayMillis: Long = 500L,
     private val progressIncrement: Int = 1,
     private val initialProgress: Int = 0
 ) {
@@ -41,6 +43,31 @@ class RaceParticipant(
      */
     var currentProgress by mutableStateOf(initialProgress)
         private set
+
+    suspend fun run() {
+        try {
+
+
+            var nextGen = 1
+
+            while (currentProgress < maxProgress) {
+                /*if (nextGen % 5 == 0) {
+                    progressDelayMillis = randomDelay()
+                }*/
+                delay(progressDelayMillis)
+                currentProgress += progressIncrement
+                nextGen++
+            }
+        } catch (e: CancellationException) {
+            Log.e("RaceParticipant", "$name: ${e.message}")
+            throw e // Always re-throw CancellationException.
+        }
+    }
+
+    private fun randomDelay(): Long {
+        Log.e("RaceParticipant", "$name new offset: $progressDelayMillis")
+        return (500..1000).random().toLong()
+    }
 
     /**
      * Regardless of the value of [initialProgress] the reset function will reset the
